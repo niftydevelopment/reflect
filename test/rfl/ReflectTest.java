@@ -77,7 +77,7 @@ public class ReflectTest {
 		//tolka om ex: namn -> name om det behövs.
 
 		
-		//ett namespace blir kort... de andra, nope!
+		//reflekter till transfer modellen och bygg ihop dess struktur.
 		CarType result = 
 				(CarType)sut.reflectToTransferModel("se.whatever.integration", carMap, engineMap);
 
