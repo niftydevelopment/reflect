@@ -10,7 +10,6 @@ import org.junit.Test;
 
 import model.Car;
 import model.Engine;
-import model.Engine.ENGINETYPE;
 import se.whatever.integration.CarType;
 import se.whatever.integration.EngineType;
 
@@ -30,7 +29,7 @@ public class ReflectTest {
 	}
 
 	@Test
-	public void reflectTo_car() throws InstantiationException, IllegalAccessException, ClassNotFoundException, IllegalArgumentException, InvocationTargetException, IntrospectionException {
+	public void reflectTo_carType() throws InstantiationException, IllegalAccessException, ClassNotFoundException, IllegalArgumentException, InvocationTargetException, IntrospectionException {
 		//modell :-)
 		Car car = new Car();
 		car.setName("OBK 032");
@@ -48,7 +47,7 @@ public class ReflectTest {
 	}
 	
 	@Test
-	public void reflectTo_engine() throws InstantiationException, IllegalAccessException, ClassNotFoundException, IllegalArgumentException, InvocationTargetException, IntrospectionException {
+	public void reflectTo_engineType() throws InstantiationException, IllegalAccessException, ClassNotFoundException, IllegalArgumentException, InvocationTargetException, IntrospectionException {
 		//modell :-)
 		Engine engine = new Engine();
 		engine.setType(Engine.ENGINETYPE.GASOLINE);
@@ -80,7 +79,7 @@ public class ReflectTest {
 		
 		//ett namespace blir kort... de andra, nope!
 		CarType result = 
-				(CarType)reflectToTransferModel("se.whatever.integration", carMap, engineMap);
+				(CarType)sut.reflectToTransferModel("se.whatever.integration", carMap, engineMap);
 
 		se.whatever.integration.v2.CarType result2 = 
 				(se.whatever.integration.v2.CarType)
@@ -104,20 +103,6 @@ public class ReflectTest {
 		assertTrue(result3.getEngineType().getType().equals("GASOLINE"));
 	}
 
-	private Object reflectToTransferModel(String path, HashMap<String, Object> carMap, HashMap<String, Object> engineMap)
-			throws InstantiationException, IllegalAccessException, ClassNotFoundException, InvocationTargetException,
-			IntrospectionException {
-		
-		Reflect reflector = new Reflect();
-		
-		//reflekter till transfer modellen och akumulera resultatet i en builder....
-		IntegrationModelBuilder builder = new IntegrationModelBuilder();
-		builder.carType(reflector.reflectTo(carMap, Class.forName(path + ".CarType")));
-		builder.engineType(reflector.reflectTo(engineMap, Class.forName(path + ".EngineType")));
-		
-		return builder.build();
-	}
-
 	private Car buildModel() {
 		//modell :-)
 		Car car = new Car();
@@ -127,7 +112,6 @@ public class ReflectTest {
 		engine.setType(Engine.ENGINETYPE.GASOLINE);
 		car.setEngine(engine);
 		return car;
-	}
-	
+	}	
 	
 }
