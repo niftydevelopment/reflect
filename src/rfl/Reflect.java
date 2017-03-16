@@ -9,9 +9,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import model.Car;
-import se.whatever.integration.CarType;
-
 public class Reflect {
 
 	public Object reflectTo(HashMap<String, Object> values, Class clazz) throws InstantiationException, IllegalAccessException, ClassNotFoundException, IllegalArgumentException, InvocationTargetException {
@@ -22,16 +19,7 @@ public class Reflect {
 		for (Method m : setters) {
 			String attr = m.getName().substring(3, m.getName().length()).toLowerCase();
 			
-			System.out.println("----------------->");
 			if (values.get(attr) != null) {
-				
-				System.out.println("attributet:" + attr);
-				System.out.println("Som är av datatyp:" + attr.getClass().getName());
-				System.out.println("skall sättas till:" + values.get(attr));
-				
-				System.out.println("på classen:" + newInstance.getClass().getName());
-				System.out.println("via metoden:" + m.getName());
-				
 				m.invoke(newInstance, values.get(attr));				
 			} else {
 				System.out.println("attributet:" + attr + " saknar värde att reflektera");
@@ -80,4 +68,16 @@ public class Reflect {
 		return values;
 	}
 	
+	public Object reflectToTransferModel(String path, HashMap<String, Object> carMap, HashMap<String, Object> engineMap)
+			throws InstantiationException, IllegalAccessException, ClassNotFoundException, InvocationTargetException,
+			IntrospectionException {
+		
+		//reflekter till transfer modellen och akumulera resultatet i en builder....
+		IntegrationModelBuilder builder = new IntegrationModelBuilder();
+		
+		builder.carType(reflectTo(carMap, Class.forName(path + ".CarType")));
+		builder.engineType(reflectTo(engineMap, Class.forName(path + ".EngineType")));
+		
+		return builder.build();
+	}
 }

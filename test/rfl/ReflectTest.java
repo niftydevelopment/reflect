@@ -18,13 +18,7 @@ public class ReflectTest {
 	
 	@Test
 	public void reflectFrom() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, IntrospectionException {
-		//modell :-)
-		Car car = new Car();
-		car.setName("OBK 032");
-		
-		Engine engine = new Engine();
-		engine.setType(Engine.ENGINETYPE.GASOLINE);
-		car.setEngine(engine);
+		Car car = buildModel();
 		
 		Reflect sut = new Reflect();
 		
@@ -70,81 +64,69 @@ public class ReflectTest {
 		Object o = sut.reflectTo(engineMap, EngineType.class);
 		EngineType engineType = (EngineType)o;
 		assertEquals("GASOLINE", engineType.getType());
-	}
+	}	
 	
 	@Test
-	public void reflectTo_chain() throws InstantiationException, IllegalAccessException, ClassNotFoundException, IllegalArgumentException, InvocationTargetException, IntrospectionException {
-		//modell :-)
-		Car car = new Car();
-		car.setName("OBK 032");
+	public void reflectToTransferModel() throws InstantiationException, IllegalAccessException, ClassNotFoundException, IllegalArgumentException, InvocationTargetException, IntrospectionException {
+		//bygg modell
+		Car car = buildModel();
 		
-		Engine engine = new Engine();
-		engine.setType(Engine.ENGINETYPE.GASOLINE);
-		car.setEngine(engine);
-		
+		//reflektera från modellen...
 		Reflect sut = new Reflect();
-
-		//hämta data från modell.
 		HashMap<String, Object> carMap = sut.reflectFrom(car);
 		HashMap<String, Object> engineMap = sut.reflectFrom(car.getEngine());
-		
-		//skapa integrationsmodell.
-		Object o = sut.reflectTo(carMap, CarType.class);
-		CarType carType = (CarType)o;
-		assertEquals("OBK 032", carType.getName());
-		
-		o = sut.reflectTo(engineMap, EngineType.class);
-		EngineType engineType = (EngineType)o;
-		assertEquals("GASOLINE", engineType.getType());
-	}
-	
-	
-	@Test
-	public void build() throws InstantiationException, IllegalAccessException, ClassNotFoundException, IllegalArgumentException, InvocationTargetException, IntrospectionException {
-		//modell :-)
-		Car car = new Car();
-		car.setName("OBK 032");
-		
-		Engine engine = new Engine();
-		engine.setType(Engine.ENGINETYPE.GASOLINE);
-		car.setEngine(engine);
-		
-		Reflect sut = new Reflect();
-
-		//hämta data från modell.
-		HashMap<String, Object> carMap = sut.reflectFrom(car);
-		HashMap<String, Object> engineMap = sut.reflectFrom(car.getEngine());
-		
-		//skapa integrationsmodell.
-		Object o = sut.reflectTo(carMap, CarType.class);
-		CarType carType = (CarType)o;
-		assertEquals("OBK 032", carType.getName());
-		
-		o = sut.reflectTo(engineMap, EngineType.class);
-		EngineType engineType = (EngineType)o;
-		assertEquals("GASOLINE", engineType.getType());
-		
+		//tolka om ex: namn -> name om det behövs.
 
 		
-		
-		IntegrationModelBuilder builder = new IntegrationModelBuilder();
-		builder.carType(carType);
-		builder.engineType(engineType);
-		
-		//bygger det som faktiskt är gemensamt... vilket borde vara det mesta.
-		Object transferModell = builder.build(CarType.class);
-		
-		assertNotNull(transferModell);
+		//ett namespace blir kort... de andra, nope!
+		CarType result = 
+				(CarType)reflectToTransferModel("se.whatever.integration", carMap, engineMap);
 
-		CarType result = (CarType)transferModell;
-		assertNotNull(result);
+		se.whatever.integration.v2.CarType result2 = 
+				(se.whatever.integration.v2.CarType)
+				sut.reflectToTransferModel("se.whatever.integration.v2", carMap, engineMap);
+
+		se.whatever.integration.v3.CarType result3 = 
+				(se.whatever.integration.v3.CarType)
+				sut.reflectToTransferModel("se.whatever.integration.v3", carMap, engineMap);
+
+		
+		//test it
 		assertTrue(result.getName().equals("OBK 032"));
+		assertTrue(result.getEngineType().getType().equals("GASOLINE"));				
 		
-		assertNotNull(result.getEngineType());
-		assertTrue(result.getEngineType().getType().equals("GASOLINE"));
+		//test it
+		assertTrue(result2.getName().equals("OBK 032"));
+		assertTrue(result2.getEngineType().getType().equals("GASOLINE"));
 		
+		//test it
+		assertTrue(result3.getName().equals("OBK 032"));
+		assertTrue(result3.getEngineType().getType().equals("GASOLINE"));
+	}
+
+	private Object reflectToTransferModel(String path, HashMap<String, Object> carMap, HashMap<String, Object> engineMap)
+			throws InstantiationException, IllegalAccessException, ClassNotFoundException, InvocationTargetException,
+			IntrospectionException {
 		
-		//TODO: ta hand om det som faktiskt inte är gemensamt.
+		Reflect reflector = new Reflect();
+		
+		//reflekter till transfer modellen och akumulera resultatet i en builder....
+		IntegrationModelBuilder builder = new IntegrationModelBuilder();
+		builder.carType(reflector.reflectTo(carMap, Class.forName(path + ".CarType")));
+		builder.engineType(reflector.reflectTo(engineMap, Class.forName(path + ".EngineType")));
+		
+		return builder.build();
+	}
+
+	private Car buildModel() {
+		//modell :-)
+		Car car = new Car();
+		car.setName("OBK 032");
+		
+		Engine engine = new Engine();
+		engine.setType(Engine.ENGINETYPE.GASOLINE);
+		car.setEngine(engine);
+		return car;
 	}
 	
 	

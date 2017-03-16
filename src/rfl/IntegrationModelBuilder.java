@@ -19,8 +19,7 @@ public class IntegrationModelBuilder {
 		this.engineType = engineType;
 	}
 
-	
-	public Object build(Class carClazz) throws IntrospectionException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, ClassNotFoundException {
+	public Object build() throws IntrospectionException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, ClassNotFoundException {
 	
 		//vi har inget interface, men vi har ett väldigt likt api.
 		Method setEngineMethod = getMethod(carType, "setEngineType");
